@@ -32,7 +32,10 @@ Before running the application, you need to install its dependencies. The depend
 
 `npm install`
 
-### Run the Application
+## Setup .env
+Create a file called `.env`, and write `OPENAI_API_KEY=[INSERT API KEY HERE]`
+
+## Run the Application
 To run the application, use the following command:
 
 `node bidwhist.js`
