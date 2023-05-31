@@ -1,4 +1,5 @@
 const { Configuration, OpenAIApi } = require("openai");
+const { log } = require("./logger.js");
 require("dotenv").config();
 
 const configuration = new Configuration({
@@ -10,18 +11,20 @@ const openai = new OpenAIApi(configuration);
 /* FUNCTIONS */
 
 async function query(history) {
-    // write history to file
-    const fs = require('fs');
-    fs.writeFile('history.txt', JSON.stringify(history), function (err) {
-        if (err) return console.log(err);
-    });
+    while (true) {
+        try {
 
-    const completion = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo",
-        messages: history,
-    });
-    console.log(completion.data.choices[0].message);
-    return completion.data.choices[0].message.content;
+            const completion = await openai.createChatCompletion({
+                model: "gpt-3.5-turbo",
+                messages: history,
+            });
+            log(completion.data.choices[0].message.content, "ai.log");
+            return completion.data.choices[0].message.content;
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
 }
 
 /* TEST */

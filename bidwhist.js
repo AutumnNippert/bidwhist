@@ -1,13 +1,16 @@
 const { Deck, Card, Trick, Player, Team, suits, ranks } = require('./cardgame.js');
+const { print } = require('./logger.js');
 
 class Game {
-
-
     constructor() {
-        this.players = [new Player('Chris'), new Player('Katy', [], false), new Player('Mom'), new Player('Dad')];
+        this.players = [new Player('Chris'), new Player('Katy', [], true), new Player('Mom', [], true), new Player('Dad', [], true)];
         this.kitty = [];
         this.deck = new Deck();
         this.currentBid = 0;
+
+        this.history = [];
+
+        this.lastTrick = new Trick();
 
         this.team1 = new Team(this.players[0], this.players[2]);
         this.team2 = new Team(this.players[1], this.players[3]);
@@ -29,9 +32,9 @@ class Game {
         }
 
         for (const player of this.players) {
-            //console.log(player.toString());
+            //print(player.toString());
         }
-        //console.log(`Kitty has ${this.kitty.length} cards: ${this.kitty.toString()}`);
+        //print(`Kitty has ${this.kitty.length} cards: ${this.kitty.toString()}`);
     }
 
     async playHand() {
@@ -42,13 +45,13 @@ class Game {
         const bids = [];
         for (const player of this.players) {
             console.clear();
-            console.log(`Scores\n${this.team1.toString()}: ${this.team1.score}\n${this.team2.toString()}: ${this.team2.score}\n`);
-            console.log("Bids:");
+            print(`Scores\n${this.team1.toString()}: ${this.team1.score}\n${this.team2.toString()}: ${this.team2.score}\n`);
+            print("Bids:");
             for (const bid of bids) {
-                console.log(`${this.players[bids.indexOf(bid)].name}: ${bid}`);
+                print(`${this.players[bids.indexOf(bid)].name}: ${bid}`);
             }
-            console.log();
-            const bid = await player.bid();
+            print();
+            const bid = await player.bid(bids);
             bids.push(parseInt(bid));
         }
 
@@ -72,7 +75,7 @@ class Game {
         console.clear();
 
 
-        console.log(`${highestBidder.name} won the bid with ${highestBid}!\n`);
+        print(`${highestBidder.name} won the bid with ${highestBid}!\n`);
 
         let leadingTeam = this.team1.isOnTeam(highestBidder) ? this.team1 : this.team2;
         let otherTeam = this.team1.isOnTeam(highestBidder) ? this.team2 : this.team1;
@@ -85,6 +88,8 @@ class Game {
 
         // ask the highest bidder to select a trump suit
         const discard = await highestBidder.pickKitty();
+
+        print(discard)
 
         console.clear();
 
@@ -100,26 +105,26 @@ class Game {
         }
 
         const trick = new Trick();
-        const history = [];
         let winningPlayer = null;
 
-        for (; ; trick.clear()) {
+        for (; ;) {
             for (const player of this.players) {
                 console.clear();
                 if (winningPlayer) {
-                    console.log(`${winningPlayer.name} won the trick!`);
+                    print(`${winningPlayer.name} won the trick!`);
+                    print(`Last Trick:\n${this.lastTrick.toString()}`);
                 }
 
-                console.log(`Tricks\n`);
-                console.log(`${leadingTeam.toString()}: ${leadingTeam.tricks.length}\n`);
-                console.log(`${otherTeam.toString()}: ${otherTeam.tricks.length} | Get to ${8 - highestBid} to win\n`);
-                console.log(`\nLeader: ${this.players[0].name}`);
-                console.log(`Trump Suit: ${trump_suit}\n`);
-                console.log(`On the Table:\n${trick.toString()}`)
-                const c = await player.selectCard(trick, history, trump_suit);
+                print(`Tricks\n`);
+                print(`${leadingTeam.toString()}: ${leadingTeam.tricks.length}\n`);
+                print(`${otherTeam.toString()}: ${otherTeam.tricks.length} | Get to ${8 - highestBid} to win\n`);
+                print(`\nLeader: ${this.players[0].name}`);
+                print(`Trump Suit: ${trump_suit}\n`);
+                print(`On the Table:\n${trick.toString()}`)
+                const c = await player.selectCard(trick, this.history, trump_suit);
                 trick.addCard(player, c);
             }
-            history.push(trick);
+            this.history.push(trick);
 
             winningPlayer = trick.getWinner(trump_suit);
             // get player from p string
@@ -137,17 +142,23 @@ class Game {
             // check if the game is over
             if (8 - highestBid == otherTeam.tricks.length) {
                 //other wins
-                console.log(`${otherTeam.toString()} won the game!`);
+                print(`${otherTeam.toString()} won the hand!`);
                 otherTeam.score += highestBid;
                 break;
             }
             // if no cards left
             if (this.players[0].hand.length == 0) {
                 //leading team wins
-                console.log(`${leadingTeam.toString()} won the game!`);
+                print(`${leadingTeam.toString()} won the hand!`);
                 leadingTeam.score += 7 - otherTeam.tricks.length;
                 break;
             }
+            // copy the trick to last trick
+            this.lastTrick = new Trick();
+            for (const pcp of trick.pcps) {
+                this.lastTrick.addCard(pcp.player, pcp.card);
+            }
+            trick.clear();
         }
     }
 
@@ -156,11 +167,11 @@ class Game {
             this.deck.initializeDeck();
             await game.playHand();
             if (this.team1.score >= 21) {
-                console.log(`${this.team1.players[0].name} and ${this.team1.players[1].name} won the game!`);
+                print(`${this.team1.players[0].name} and ${this.team1.players[1].name} won the game!`);
                 break;
             }
             if (this.team2.score >= 21) {
-                console.log(`${this.team2.players[0].name} and ${this.team2.players[1].name} won the game!`);
+                print(`${this.team2.players[0].name} and ${this.team2.players[1].name} won the game!`);
                 break;
             }
 
@@ -170,6 +181,10 @@ class Game {
             // reset teams
             this.team1.reset();
             this.team2.reset();
+            this.history = [];
+            this.kitty = [];
+            //rotate players
+            this.players.push(this.players.shift());
         }
     }
 }

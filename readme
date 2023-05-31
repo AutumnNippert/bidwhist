@@ -1,0 +1,41 @@
+# Bidwhist
+
+## Game Rules
+The game is called bidwhist; A trick taking game.
+
+It consists of 4 players, 2 per team, and the teams are across from eachother.
+
+The game starts off dealing 12 cards to each of the 4 players, and alloting 6 to the "Kitty", totaling 54 cards in total.
+
+Each person bids 4 through 7, or they can pass.
+
+Highest bid takes the kitty and adds it to their hand, and then they discard 6 that they don't want.
+
+They then call "Trump", or the Suit that beats all others, and play the first card.
+
+Whoever plays the highest card of the suit that was led wins the trick, unless a trump card is played, in which case the highest trump card wins.
+
+The leading player is the one who won the last trick.
+
+A player must follow suit of the leading card. If a player does not have a card of the suit that was led, they may play any card.
+
+The winner of the trick leads the next trick. The game ends when all cards have been played, or the team that didn't take the kitty takes (8 - bid) tricks
+
+## Prerequisites
+### NodeJS
+Before proceeding with the installation, make sure you have the following prerequisites installed on your machine:
+
+* Node.js: Ensure that you have Node.js installed on your system. You can download the latest version of Node.js from the official Node.js website: https://nodejs.org
+
+### Install dependencies
+Before running the application, you need to install its dependencies. The dependencies are typically listed in a package.json file. Use the following command to install the required dependencies:
+
+`npm install`
+
+### Run the Application
+To run the application, use the following command:
+
+`node bidwhist.js`
+
+## Tips
+`-1` is how you exit the game
