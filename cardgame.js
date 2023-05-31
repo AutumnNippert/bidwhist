@@ -199,12 +199,14 @@ class Player {
         this.hand = hearts.concat(clubs, diamonds, spades, jokers);
     }
 
-    async selectCard(current_trick, game_history, trump) {
+    async selectCard(current_trick, game_history, trump, team) {
         this.getPlayableCards(current_trick);
         if (this.AI) {
             const role = { role: "system", content: `You are a professional bidwhist player.` };
             const rules = { role: "system", content: `Rules: The game is bidwhist. Whoever plays the highest card of the suit that was led wins the trick, unless a trump card is played, in which case the highest trump card wins. A player must follow suit of the leading card. If a player does not have a card of the suit that was led, they may play any card. The winner of the trick leads the next trick. The game ends when all cards have been played.` };
             const tips = { role: "system", content: `Tips: There are only 15 trump (including jokers) in a hand.\nIf you can't beat the cards already in the trick, its good practice to throw away a low card.\nIf your team didn't call trump, don't lead with trump.` };
+
+            const currTeam = { role: "system", content: `Your team: ${team.player1.name} and ${team.player2.name}` };
             const t = { role: "system", content: `Trump: ${trump}` };
             const currentTrick = { role: "system", content: `Current trick: ${current_trick.toString()}` };
             const gameHistory = { role: "system", content: `Game history: ${game_history.toString()}` };
@@ -215,7 +217,7 @@ class Player {
             let selection = -1;
             let isValid = false;
             while (!isValid) {
-                let selection = await query([role, rules, tips, t, currentTrick, gameHistory, currentHand, playableCards, prompt]);
+                let selection = await query([role, rules, tips, currTeam, t, currentTrick, gameHistory, currentHand, playableCards, prompt]);
                 selection = selection.split(' ')[0];
 
                 // remove punctuation from selection
@@ -259,15 +261,23 @@ class Player {
             while (!isValid) {
                 selection = prompt(`${this.name}, enter the index of the card you want to play: `);
 
+                // if selection is ctrl-c, exit
+                if (selection === '-1') {
+                    process.exit();
+                }
+
+                if(selection == null) {
+                    print("Please type -1 to exit.");
+                    continue;
+                }
+
+                // remove punctuation from selection
+                selection = selection.replace(/[.,\/#!$%\^&\*;:{}=\-_`~() ]/g, "");
+
                 // if i can't parse as int, then it's not a valid selection
                 if (isNaN(parseInt(selection))) {
                     print("Invalid selection. Try again.");
                     continue;
-                }
-
-                // if selection is ctrl-c, exit
-                if (selection === '-1') {
-                    process.exit();
                 }
 
                 if (selection == 0) {
@@ -357,10 +367,18 @@ class Player {
             while (!isValid) {
                 selection = prompt(`${this.name}, enter your bid (4-7 | 0 to pass): `);
 
+                if(selection == null) {
+                    print("Please type -1 to exit.");
+                    continue;
+                }
+
                 // if selection is ctrl-c, exit
                 if (selection === '-1') {
                     process.exit();
                 }
+
+                // remove punctuation from selection
+                selection = selection.replace(/[.,\/#!$%\^&\*;:{}=\-_`~() ]/g, "");
 
                 // if i can't parse as int, then it's not a valid selection
                 if (isNaN(parseInt(selection))) {
@@ -478,13 +496,26 @@ class Player {
             while (!isValid) {
                 selection = prompt(`${this.name}, enter the indexes of the 6 cards you want to discard, separated by spaces: `);
 
+                if(selection == null) {
+                    print("Please type -1 to exit.");
+                    continue;
+                }
+
                 // if selection is ctrl-c, exit
                 if (selection === '-1') {
                     process.exit();
                 }
 
+                // remove punctuation from selection
+                selection = selection.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+
                 // split to array
-                selection = selection.split(" ");
+                try {
+                    selection = selection.split(" ");
+                } catch (e) {
+                    print("Invalid selection. Try again.");
+                    continue;
+                }
 
                 if (selection.length !== 6) {
                     print("Invalid selection. Try again.");
@@ -585,10 +616,18 @@ class Player {
             while (!isValid) {
                 selection = prompt(`${this.name}, enter the index of trump: `);
 
+                if(selection == null) {
+                    print("Please type -1 to exit.");
+                    continue;
+                }
+
                 // if selection is ctrl-c, exit
                 if (selection === '-1') {
                     process.exit();
                 }
+
+                // remove punctuation from selection
+                selection = selection.replace(/[.,\/#!$%\^&\*;:{}=\-_`~() ]/g, "");
 
                 // if i can't parse as int, then it's not a valid selection
                 if (isNaN(parseInt(selection))) {

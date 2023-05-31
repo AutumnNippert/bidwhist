@@ -1,5 +1,6 @@
 const { Deck, Card, Trick, Player, Team, suits, ranks } = require('./cardgame.js');
 const { print } = require('./logger.js');
+const prompt = require('prompt-sync')();
 
 class Game {
     constructor() {
@@ -47,8 +48,8 @@ class Game {
             console.clear();
             print(`Scores\n${this.team1.toString()}: ${this.team1.score}\n${this.team2.toString()}: ${this.team2.score}\n`);
             print("Bids:");
-            for (const bid of bids) {
-                print(`${this.players[bids.indexOf(bid)].name}: ${bid}`);
+            for (let i = 0; i < bids.length; i++) {
+                print(`${this.players[i].name}: ${bids[i]}`);
             }
             print();
             const bid = await player.bid(bids);
@@ -115,13 +116,14 @@ class Game {
                     print(`Last Trick:\n${this.lastTrick.toString()}`);
                 }
 
-                print(`Tricks\n`);
-                print(`${leadingTeam.toString()}: ${leadingTeam.tricks.length}\n`);
+                print(`Tricks`);
+                print(`${leadingTeam.toString()}: ${leadingTeam.tricks.length}`);
                 print(`${otherTeam.toString()}: ${otherTeam.tricks.length} | Get to ${8 - highestBid} to win\n`);
                 print(`\nLeader: ${this.players[0].name}`);
                 print(`Trump Suit: ${trump_suit}\n`);
                 print(`On the Table:\n${trick.toString()}`)
-                const c = await player.selectCard(trick, this.history, trump_suit);
+                const playerTeam = this.team1.isOnTeam(player) ? this.team1 : this.team2;
+                const c = await player.selectCard(trick, this.history, trump_suit, playerTeam);
                 trick.addCard(player, c);
             }
             this.history.push(trick);
@@ -141,6 +143,8 @@ class Game {
 
             // check if the game is over
             if (8 - highestBid == otherTeam.tricks.length) {
+                console.clear();
+                print(`Last Trick:\n${trick.toString()}`);
                 //other wins
                 print(`${otherTeam.toString()} won the hand!`);
                 otherTeam.score += highestBid;
@@ -149,6 +153,9 @@ class Game {
             // if no cards left
             if (this.players[0].hand.length == 0) {
                 //leading team wins
+                console.clear();
+                print(`Last Trick:\n${trick.toString()}`);
+
                 print(`${leadingTeam.toString()} won the hand!`);
                 leadingTeam.score += 7 - otherTeam.tricks.length;
                 break;
@@ -175,8 +182,8 @@ class Game {
                 break;
             }
 
-            //wait for user input
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            //wait for user input with prompt
+            await prompt("Press enter to continue...");
 
             // reset teams
             this.team1.reset();
