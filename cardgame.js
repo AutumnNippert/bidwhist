@@ -20,6 +20,28 @@ class Card {
         }
         return `|${this.rank} of ${this.suit}|`
     }
+    
+    getCmpVal() {
+        if (this.rank === 'Jack') {
+            return 11;
+        } else if (this.rank === 'Queen') {
+            return 12;
+        } else if (this.rank === 'King') {
+            return 13;
+        } else if (this.rank === 'Ace') {
+            return 14;
+        } else if (this.rank === 'Little Joker') {
+            return 15;
+        } else if (this.rank === 'Big Joker') {
+            return 16;
+        } else {
+            return parseInt(this.rank);
+        }
+    }
+
+    cmp(other) {
+        return this.getCmpVal() - other.getCmpVal();
+    }
 }
 
 // Deck class
@@ -156,7 +178,6 @@ class Player {
         return this.playable_cards;
     }
 
-
     sortHand() {
         /*
         Spades 2-14
@@ -185,17 +206,13 @@ class Player {
                 jokers.push(card);
             }
         }
-        hearts.sort((a, b) => a.rank - b.rank);
-        clubs.sort((a, b) => a.rank - b.rank);
-        diamonds.sort((a, b) => a.rank - b.rank);
-        spades.sort((a, b) => a.rank - b.rank);
-        jokers.sort((a, b) => {
-            if (a.rank === 'Little Joker') {
-                return -1;
-            } else {
-                return 1;
-            }
-        });
+
+        hearts.sort((a, b) => a.cmp(b));
+        clubs.sort((a, b) => a.cmp(b));
+        diamonds.sort((a, b) => a.cmp(b));
+        spades.sort((a, b) => a.cmp(b));
+        jokers.sort((a, b) => a.cmp(b));
+
         this.hand = hearts.concat(clubs, diamonds, spades, jokers);
     }
 
@@ -266,7 +283,7 @@ class Player {
                     process.exit();
                 }
 
-                if(selection == null) {
+                if (selection == null) {
                     print("Please type -1 to exit.");
                     continue;
                 }
@@ -318,14 +335,12 @@ class Player {
                 // search for the first number in the string
                 try {
                     selection = selection.match(/\d+/)[0];
-                    print(`selection: ${selection}`);
                 }
                 catch (err) {
                     continue;
                 }
 
                 if (!(selection == 0 || selection == 4 || selection == 5 || selection == 6 || selection == 7)) {
-                    print("Invalid selection. Try again.");
                     continue;
                 }
 
@@ -367,7 +382,7 @@ class Player {
             while (!isValid) {
                 selection = prompt(`${this.name}, enter your bid (4-7 | 0 to pass): `);
 
-                if(selection == null) {
+                if (selection == null) {
                     print("Please type -1 to exit.");
                     continue;
                 }
@@ -440,14 +455,12 @@ class Player {
                 selection = selection.split(" ");
 
                 if (selection.length !== 6) {
-                    print("Invalid selection. Try again.");
                     continue;
                 }
 
                 // if i can't parse as int, then it's not a valid selection
                 for (const index of selection) {
                     if (isNaN(parseInt(index))) {
-                        print("Invalid selection. Try again.");
                         continue;
                     }
                 }
@@ -455,14 +468,12 @@ class Player {
                 // check if all indexes are valid
                 for (const index of selection) {
                     if (index < 0 || index >= this.hand.length) {
-                        print("Invalid selection. Try again.");
                         continue;
                     }
                 }
 
                 // check if all indexes are unique
                 if (new Set(selection).size !== selection.length) {
-                    print("Invalid selection. Try again.");
                     continue;
                 }
 
@@ -496,7 +507,7 @@ class Player {
             while (!isValid) {
                 selection = prompt(`${this.name}, enter the indexes of the 6 cards you want to discard, separated by spaces: `);
 
-                if(selection == null) {
+                if (selection == null) {
                     print("Please type -1 to exit.");
                     continue;
                 }
@@ -590,7 +601,6 @@ class Player {
                 }
 
                 if (selection < 0 || selection >= options.length) {
-                    print("Invalid selection. Try again.");
                     continue;
                 }
 
@@ -616,7 +626,7 @@ class Player {
             while (!isValid) {
                 selection = prompt(`${this.name}, enter the index of trump: `);
 
-                if(selection == null) {
+                if (selection == null) {
                     print("Please type -1 to exit.");
                     continue;
                 }
